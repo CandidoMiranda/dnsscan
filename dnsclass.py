@@ -48,10 +48,10 @@ class DNSscan:
 
         dominios_json = json.dumps(dominios)
 
-        with open(f"{dominio}-subdomains.json", 'w') as f:
+        with open(f"scans/{dominio}/{dominio}-subdomains.json", 'w') as f:
             f.write(dominios_json)
             f.close()
-        print(f'\n*** Arquivo JSON "{dominio}-subdomains.json" criado. ***\n')
+        print(f'\n*** Arquivo JSON "scans/{dominio}/{dominio}-subdomains.json" criado. ***\n')
         
     def cnameCheck(dominio, wordlist):
         cnames = {}
@@ -77,10 +77,10 @@ class DNSscan:
 
         cnames_json = json.dumps(cnames)
 
-        with open(f'{dominio}-cname.json', 'w') as f:
+        with open(f'scans/{dominio}/{dominio}-cname.json', 'w') as f:
             f.write(cnames_json)
             f.close()
-        print(f'\n*** Arquivo JSON "{dominio}-cname.json" criado. ***\n')
+        print(f'\n*** Arquivo JSON "scans/{dominio}/{dominio}-cname.json" criado. ***\n')
     
     def whois(dominio):
         def openSocket(whois, dominio):
@@ -96,7 +96,10 @@ class DNSscan:
         s.close()
 
         s = openSocket(whois, dominio)
-        whois = s.recv(1024).decode().split(' Registrar WHOIS Server: ')[1].split('\r')[0]
+        try:
+            whois = s.recv(1024).decode().split(' Registrar WHOIS Server: ')[1].split('\r')[0]
+        except IndexError:
+            pass
         s.close()
 
         s = openSocket(whois, dominio)
@@ -112,9 +115,9 @@ class DNSscan:
 
         dominio = dominio.replace('\r\n','')
 
-        with open(f'{dominio}.whois', 'w') as f:
+        with open(f'scans/{dominio}/{dominio}.whois', 'w') as f:
             f.write(resposta)
             f.close()
 
         print(resposta)
-        print(f'\n*** Arquivo TXT "{dominio}.whois" criado. ***\n')
+        print(f'\n*** Arquivo TXT "scans/{dominio}/{dominio}.whois" criado. ***\n')
