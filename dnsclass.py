@@ -51,7 +51,7 @@ class DNSscan:
         with open(f"{dominio}-subdomains.json", 'w') as f:
             f.write(dominios_json)
             f.close()
-        print(f'Arquivo JSON "{dominio}-subdomains.json" criado.')
+        print(f'\n*** Arquivo JSON "{dominio}-subdomains.json" criado. ***\n')
         
     def cnameCheck(dominio, wordlist):
         cnames = {}
@@ -80,4 +80,41 @@ class DNSscan:
         with open(f'{dominio}-cname.json', 'w') as f:
             f.write(cnames_json)
             f.close()
-        print(f'Arquivo JSON "{dominio}-cname.json" criado.')
+        print(f'\n*** Arquivo JSON "{dominio}-cname.json" criado. ***\n')
+    
+    def whois(dominio):
+        def openSocket(whois, dominio):
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((whois,43))
+            s.send(dominio.encode())
+            return s
+
+        dominio = dominio + '\r\n'
+
+        s = openSocket('whois.iana.org', dominio)
+        whois = s.recv(1024).decode().split('refer:        ')[1].split('\n')[0]
+        s.close()
+
+        s = openSocket(whois, dominio)
+        whois = s.recv(1024).decode().split(' Registrar WHOIS Server: ')[1].split('\r')[0]
+        s.close()
+
+        s = openSocket(whois, dominio)
+
+        resposta = ''
+        while True:
+            data = s.recv(8192)
+            if data:
+                resposta += data.decode()
+            else:
+                break
+        s.close()
+
+        dominio = dominio.replace('\r\n','')
+
+        with open(f'{dominio}.whois', 'w') as f:
+            f.write(resposta)
+            f.close()
+
+        print(resposta)
+        print(f'\n*** Arquivo TXT "{dominio}.whois" criado. ***\n')
